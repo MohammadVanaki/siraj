@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/common/constants/constants.dart';
-import 'package:love/app/core/common/widgets/empty_widget.dart';
-import 'package:love/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
-import 'package:love/app/features/favorite%20&%20comment/view/widgets/comment_widget.dart';
-import 'package:love/app/features/favorite%20&%20comment/view/widgets/favority_widget.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
+import 'package:mawsueat/app/core/common/widgets/empty_widget.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/widgets/comment_widget.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/widgets/favority_widget.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class FavoritePage extends StatelessWidget {
@@ -59,11 +59,16 @@ class FavoritePage extends StatelessWidget {
                             child: Text(
                               'اشارات مرجعية',
                               style: TextStyle(
+                                fontFamily: 'IBMPlexSansArabic',
+                                fontSize: 13.5,
+                                fontWeight:
+                                    favoriteController.selectedTabIndex.value == 1
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
                                 color:
-                                    favoriteController.selectedTabIndex.value ==
-                                        1
-                                    ? Colors.white
-                                    : Colors.white70,
+                                    favoriteController.selectedTabIndex.value == 1
+                                        ? Colors.white
+                                        : Colors.white70,
                               ),
                             ),
                           ),
@@ -76,11 +81,16 @@ class FavoritePage extends StatelessWidget {
                             child: Text(
                               'تعليقات',
                               style: TextStyle(
+                                fontFamily: 'IBMPlexSansArabic',
+                                fontSize: 13.5,
+                                fontWeight:
+                                    favoriteController.selectedTabIndex.value == 0
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
                                 color:
-                                    favoriteController.selectedTabIndex.value ==
-                                        0
-                                    ? Colors.white
-                                    : Colors.white70,
+                                    favoriteController.selectedTabIndex.value == 0
+                                        ? Colors.white
+                                        : Colors.white70,
                               ),
                             ),
                           ),
@@ -97,7 +107,7 @@ class FavoritePage extends StatelessWidget {
               if (favoriteController.selectedTabIndex.value == 0) {
                 return favoriteController.commentsList.isNotEmpty
                     ? ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 115),
                         itemCount: favoriteController.commentsList.length,
                         itemBuilder: (context, index) {
                           return CommentContainer(
@@ -109,15 +119,21 @@ class FavoritePage extends StatelessWidget {
               } else {
                 return favoriteController.bookmarksList.isNotEmpty
                     ? ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 115),
                         itemCount: favoriteController.bookmarksList.length,
                         itemBuilder: (context, index) {
                           final bookmark =
                               favoriteController.bookmarksList[index];
+                          final int bookId = bookmark['bookId'] is int
+                              ? bookmark['bookId']
+                              : (int.tryParse(bookmark['bookId']?.toString() ?? '1') ?? 1);
+                          final int pageNum = bookmark['pageNumber'] is int
+                              ? bookmark['pageNumber']
+                              : (int.tryParse(bookmark['pageNumber']?.toString() ?? '0') ?? 0);
                           return FavorityContainer(
-                            bookId: bookmark['bookId'],
-                            bookName: bookmark['bookName'],
-                            pageNumber: (bookmark['pageNumber'] + 1).toString(),
+                            bookId: bookId,
+                            bookName: (bookmark['bookName'] ?? '').toString(),
+                            pageNumber: (pageNum + 1).toString(),
                             index: index,
                           );
                         },

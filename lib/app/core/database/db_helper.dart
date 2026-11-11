@@ -71,25 +71,62 @@ class DBHelper {
     return db.query(table);
   }
 
-  /// Get book groups
-  static Future<List<Map<String, dynamic>>> getBookGroups() async {
+  /// Get all main book groups (TABLE books)
+  static Future<List<Map<String, dynamic>>> getBooks() async {
     final db = await initDb();
-    return await db.query('bookgroups');
+    return await db.query('books', orderBy: 'id ASC');
   }
 
-  /// Get book info by bookId
-  static Future<Map<String, dynamic>?> getBookInfo() async {
+  /// Alias for backward compatibility
+  static Future<List<Map<String, dynamic>>> getBookGroups() async {
+    return await getBooks();
+  }
+
+  /// Get book info by bookId from TABLE books
+  static Future<Map<String, dynamic>?> getBookById(int id) async {
     final db = await initDb();
-    final result = await db.query('books', where: 'id = ?');
+    final result = await db.query('books', where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty) {
       return result.first;
     }
     return null;
   }
 
-  /// Run raw SQL query
-  static Future<List<Map<String, dynamic>>> rawQuery(String sql) async {
+  /// Get all sub-items (chapters/texts) for a specific book (TABLE book_text WHERE bid = books.id)
+  static Future<List<Map<String, dynamic>>> getBookTextsByBookId(int bookId) async {
     final db = await initDb();
-    return db.rawQuery(sql);
+    return await db.query(
+      'book_text',
+      where: 'bid = ?',
+      whereArgs: [bookId],
+      orderBy: 'id ASC',
+    );
+  }
+
+  /// Get a specific text page by its primary key id from TABLE book_text
+  static Future<Map<String, dynamic>?> getBookTextById(int id) async {
+    final db = await initDb();
+    final result = await db.query('book_text', where: 'id = ?', whereArgs: [id]);
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
+  /// Toggle or update favorite status for a book_text item
+  static Future<int> setFavorite(int id, bool isFav) async {
+    final db = await initDb();
+    return await db.update(
+      'book_text',
+      {'fav': isFav ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Run raw SQL query
+  static Future<List<Map<String, dynamic>>> rawQuery(String sql, [List<Object?>? arguments]) async {
+    final db = await initDb();
+    return db.rawQuery(sql, arguments);
   }
 }

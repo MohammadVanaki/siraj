@@ -1,9 +1,7 @@
-// اصلاح شده
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/common/constants/constants.dart';
-import 'package:love/app/features/favorite%20&%20comment/view/controller/comment_controller.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
 
 class ModalComment {
   static void show(
@@ -16,6 +14,18 @@ class ModalComment {
     String? oldTitle,
     String? oldComment,
   }) {
+    final TextEditingController titleController = TextEditingController(
+      text: oldTitle ?? '',
+    );
+    final TextEditingController contentController = TextEditingController(
+      text: oldComment ?? '',
+    );
+
+    final FavoriteController favoriteController =
+        Get.isRegistered<FavoriteController>()
+            ? Get.find<FavoriteController>()
+            : Get.put(FavoriteController());
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -23,316 +33,214 @@ class ModalComment {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       backgroundColor: Colors.white,
-      builder: (BuildContext context) {
-        // دریافت کنترلر کامنت
-        final CommentController commentController =
-            Get.find<CommentController>();
-
-        TextEditingController titleController = TextEditingController(
-          text: oldTitle ?? '',
-        );
-        TextEditingController controller = TextEditingController(
-          text: oldComment ?? '',
-        );
-
-        return Obx(() {
-          return Padding(
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Padding(
             padding: EdgeInsets.only(
               left: 16,
               right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              top: 20,
+              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
             ),
             child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "تعليقك على ص $idPage من كتاب: $bookname",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+            textDirection: TextDirection.rtl,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.edit_note_rounded,
+                      size: 24,
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-
-                  TextField(
-                    controller: titleController,
-                    decoration: InputDecoration(
-                      labelText: 'عنوان التعليق',
-                      labelStyle: TextStyle(color: Colors.black45),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-
-                  TextField(
-                    controller: controller,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      labelText: 'التعليق',
-                      labelStyle: TextStyle(color: Colors.black45),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 15,
-                        horizontal: 10,
-                      ),
-                    ),
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
-                  ),
-
-                  // نمایش خطا
-                  if (commentController.error.value.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                    const Gap(8),
+                    Expanded(
                       child: Text(
-                        commentController.error.value,
-                        style: TextStyle(color: Colors.red, fontSize: 14),
-                        textAlign: TextAlign.center,
+                        updateMode ? 'تعديل التعليق' : 'إضافة تعليق جديد',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                       ),
                     ),
-
-                  const SizedBox(height: 20),
-
-                  // Action buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: commentController.isSubmitting.value
-                            ? null
-                            : () async {
-                                if (controller.text.isEmpty ||
-                                    titleController.text.isEmpty) {
-                                  Get.snackbar(
-                                    'خطأ',
-                                    'يرجى ملء جميع الحقول.',
-                                    colorText: Colors.white,
-                                    backgroundColor: Colors.redAccent.withAlpha(
-                                      100,
-                                    ),
-                                    icon: Icon(
-                                      Icons.error_outline,
-                                      color: Colors.white,
-                                    ),
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    duration: Duration(seconds: 3),
-                                    margin: EdgeInsets.all(16),
-                                    borderRadius: 10,
-                                  );
-                                } else {
-                                  String title = titleController.text.trim();
-                                  String comment = controller.text.trim();
-
-                                  if (updateMode) {
-                                    // حالت آپدیت
-                                    await commentController.updateComment(
-                                      id: id,
-                                      title: title,
-                                      content: comment,
-                                      pageNumber: idPage,
-                                    );
-
-                                    // فقط اگر موفق بود، localStorage رو هم آپدیت کن
-                                    if (commentController
-                                        .success
-                                        .value
-                                        .isNotEmpty) {
-                                      _updateLocalStorage(
-                                        idBook: idBook,
-                                        bookname: bookname,
-                                        idPage: idPage,
-                                        title: title,
-                                        comment: comment,
-                                      );
-                                    }
-                                  } else {
-                                    // حالت جدید
-                                    await commentController.submitComment(
-                                      title: title,
-                                      content: comment,
-                                      pageNumber: idPage,
-                                    );
-
-                                    // فقط اگر موفق بود، localStorage رو هم ذخیره کن
-                                    if (commentController
-                                        .success
-                                        .value
-                                        .isNotEmpty) {
-                                      _saveToLocalStorage(
-                                        idBook: idBook,
-                                        bookname: bookname,
-                                        idPage: idPage,
-                                        title: title,
-                                        comment: comment,
-                                      );
-                                    }
-                                  }
-
-                                  // اگر ارسال موفق بود، مدال رو ببند
-                                  if (commentController
-                                      .success
-                                      .value
-                                      .isNotEmpty) {
-                                    await Future.delayed(
-                                      const Duration(milliseconds: 500),
-                                    );
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                    }
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: commentController.isSubmitting.value
-                            ? SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(updateMode ? 'تحديث' : 'إرسال'),
-                      ),
-                      OutlinedButton(
-                        onPressed: commentController.isSubmitting.value
-                            ? null
-                            : () {
-                                Navigator.pop(context);
-                              },
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            width: 1,
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'إلغاء',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
+                  ],
+                ),
+                const Gap(4),
+                Text(
+                  "$bookname (ص $idPage)",
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
                   ),
-                  const Gap(20),
-                ],
-              ),
+                ),
+                const Gap(16),
+
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: 'عنوان التعليق (اختياري)',
+                    labelStyle: const TextStyle(color: Colors.black45, fontSize: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 15, color: Colors.black87),
+                ),
+                const Gap(12),
+
+                TextField(
+                  controller: contentController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: 'نص التعليق *',
+                    labelStyle: const TextStyle(color: Colors.black45, fontSize: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                  ),
+                  style: const TextStyle(fontSize: 15, color: Colors.black87),
+                ),
+
+                const Gap(20),
+
+                // Action buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(sheetContext);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: const Text(
+                        'إلغاء',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    ),
+                    const Gap(12),
+                    ElevatedButton(
+                      onPressed: () {
+                        final String commentText = contentController.text.trim();
+                        if (commentText.isEmpty) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'يرجى كتابة نص التعليق أولاً',
+                                style: TextStyle(fontFamily: 'IBMPlexSansArabic'),
+                                textDirection: TextDirection.rtl,
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final String titleText = titleController.text.trim();
+
+                        // حفظ في FavoriteController والتخزين المحلي
+                        favoriteController.saveComment(
+                          bookId: idBook,
+                          bookName: bookname,
+                          pageNumber: idPage - 1,
+                          title: titleText.isNotEmpty ? titleText : bookname,
+                          comment: commentText,
+                        );
+
+                        Navigator.pop(sheetContext);
+
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              updateMode
+                                  ? 'تم تحديث التعليق بنجاح'
+                                  : 'تمت إضافة التعليق بنجاح',
+                              style: const TextStyle(fontFamily: 'IBMPlexSansArabic'),
+                              textDirection: TextDirection.rtl,
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(
+                        updateMode ? 'تحديث' : 'حفظ التعليق',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                const Gap(8),
+              ],
             ),
-          );
-        });
-      },
+          ),
+        ),
+      );
+    },
     );
-  }
-
-  // تابع کمکی برای ذخیره در localStorage
-  static Future<void> _saveToLocalStorage({
-    required int idBook,
-    required String bookname,
-    required int idPage,
-    required String title,
-    required String comment,
-  }) async {
-    String allCommentsKey = 'allBookComments';
-    List<dynamic> existingComments =
-        Constants.localStorage.read(allCommentsKey) ?? [];
-
-    // چک کن که آیا کامنت قبلی برای همین کتاب و صفحه وجود دارد
-    int existingIndex = existingComments.indexWhere(
-      (c) => c['idBook'] == idBook && c['idPage'] == idPage,
-    );
-
-    if (existingIndex != -1) {
-      existingComments.removeAt(existingIndex);
-    }
-
-    // ایجاد کامنت جدید
-    Map<String, dynamic> newComment = {
-      'id': DateTime.now().millisecondsSinceEpoch,
-      'idBook': idBook,
-      'bookName': bookname,
-      'idPage': idPage,
-      'title': title,
-      'comment': comment,
-      'createdAt': DateTime.now().toIso8601String(),
-    };
-
-    existingComments.add(newComment);
-
-    await Constants.localStorage.write(allCommentsKey, existingComments);
-  }
-
-  // تابع کمکی برای آپدیت localStorage
-  static Future<void> _updateLocalStorage({
-    required int idBook,
-    required String bookname,
-    required int idPage,
-    required String title,
-    required String comment,
-  }) async {
-    String allCommentsKey = 'allBookComments';
-    List<dynamic> existingComments =
-        Constants.localStorage.read(allCommentsKey) ?? [];
-
-    int existingIndex = existingComments.indexWhere(
-      (c) => c['idBook'] == idBook && c['idPage'] == idPage,
-    );
-
-    if (existingIndex != -1) {
-      existingComments[existingIndex] = {
-        ...existingComments[existingIndex],
-        'title': title,
-        'comment': comment,
-        'updatedAt': DateTime.now().toIso8601String(),
-      };
-    }
-
-    await Constants.localStorage.write(allCommentsKey, existingComments);
   }
 }

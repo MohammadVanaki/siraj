@@ -1,7 +1,7 @@
-name: love
-description: "A new Flutter project."
+name: mawsueat
+description: "تطبيق السراج"
 publish_to: "none"
-version: 1.2.2+5
+version: 1.0.1+2
 
 environment:
   sdk: ^3.8.0
@@ -29,30 +29,68 @@ dependencies:
   intl: ^0.20.2
   firebase_messaging: ^15.1.6
   firebase_core: ^3.8.1
+  firebase_auth: ^5.4.1
+  cloud_firestore: ^5.6.1
   flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.1
+  adhan: ^2.0.0+1
+  audioplayers: ^6.1.2
+  audio_service: ^0.18.19
   google_api_availability: ^5.0.1
   http: ^1.6.0
+  dio: ^5.8.0+1
   cached_network_image: ^3.4.1
+  archive: ^4.0.2
+  flutter_widget_from_html: ^0.15.3
+  camera: ^0.11.2+1
+  flutter_compass: ^0.8.1
+  geolocator: ^14.0.2
+  permission_handler: ^11.3.1
+  hijri: ^3.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  icons_launcher: 3.0.3
+
+icons_launcher:
+  image_path: "assets/images/appIcon.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
+    web:
+      enable: true
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/
+    - assets/icons/
     - assets/fonts/
     - assets/fonts/webfonts/
     - assets/svgs/
     - assets/svgs/fill/
-    - assets/db/
+    # - assets/db/
     - assets/web/js/
     - assets/web/css/
     - assets/web/html/
+    - assets/audio/
+    - assets/audio/adhan/
+    - shorebird.yaml
 
   fonts:
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
     - family: dijlah
       fonts:
         - asset: ./assets/fonts/dijlah-reg.ttf
@@ -66,3 +104,12 @@ flutter:
     - family: abo
       fonts:
         - asset: assets/fonts/abo.ttf
+    - family: aljazeera
+      fonts:
+        - asset: assets/fonts/aljazeera.ttf
+    - family: uthman_taha
+      fonts:
+        - asset: assets/fonts/uthman_taha.otf
+    - family: uthmanic_hafs
+      fonts:
+        - asset: assets/fonts/uthmanic_hafs.otf

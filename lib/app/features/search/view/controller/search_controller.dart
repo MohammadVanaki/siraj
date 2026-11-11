@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/database/db_helper.dart';
+import 'package:mawsueat/app/core/database/db_helper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart' as p;
@@ -116,7 +116,7 @@ Future<List<Map<String, dynamic>>> searchBooks(
   // 🔍 جستجو در عنوان
   if (isTitleChecked) {
     final titleResults = await db.rawQuery(
-      'SELECT * FROM b38_chapters WHERE title LIKE ?',
+      'SELECT * FROM book_text WHERE title LIKE ?',
       ['%$searchWords%'],
     );
     results.addAll(titleResults);
@@ -125,7 +125,7 @@ Future<List<Map<String, dynamic>>> searchBooks(
   // 🔍 جستجو در متن
   if (isDescriptionChecked) {
     final descriptionResults = await db.rawQuery(
-      'SELECT * FROM b38_pages WHERE _text LIKE ?',
+      'SELECT * FROM book_text WHERE _text LIKE ?',
       ['%$searchWords%'],
     );
     results.addAll(descriptionResults);

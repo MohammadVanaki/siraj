@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:love/app/features/setting/view/controller/settings_controller.dart';
+import 'package:mawsueat/app/features/setting/view/controller/settings_controller.dart';
 
 class MyThemes {
   static final SettingsController settingsController = Get.find();
 
   static ThemeData get lightTheme {
     final scheme = settingsController.selectedColorScheme.value;
+    final font = settingsController.effectiveFontFamily;
 
     return ThemeData(
       brightness: Brightness.light,
-      fontFamily: 'SegoeUI',
+      fontFamily: font,
+      textTheme: ThemeData.light().textTheme.apply(
+        fontFamily: font,
+      ),
       useMaterial3: true,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -23,6 +27,11 @@ class MyThemes {
       ),
       dividerTheme: DividerThemeData(
         color: scheme.onPrimary.withAlpha(50),
+      ),
+      scaffoldBackgroundColor: scheme.surface,
+      canvasColor: scheme.surface,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: scheme.onPrimary,
       ),
       colorScheme: ColorScheme(
         brightness: Brightness.light,
@@ -39,9 +48,21 @@ class MyThemes {
   }
 
   static ThemeData get darkTheme {
+    const darkSurface = Color.fromARGB(255, 26, 23, 23);
+    final font = settingsController.effectiveFontFamily;
+
     return ThemeData(
-      fontFamily: 'dijlah',
+      brightness: Brightness.dark,
+      fontFamily: font,
+      textTheme: ThemeData.dark().textTheme.apply(
+        fontFamily: font,
+      ),
       useMaterial3: true,
+      scaffoldBackgroundColor: darkSurface,
+      canvasColor: darkSurface,
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color.fromARGB(255, 172, 172, 172),
+      ),
       dividerTheme:
           const DividerThemeData(color: Color.fromARGB(50, 210, 210, 210)),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -57,7 +78,7 @@ class MyThemes {
         brightness: Brightness.dark,
         primary: Color.fromARGB(255, 56, 56, 56),
         onPrimary: Color.fromARGB(255, 172, 172, 172),
-        surface: Color.fromARGB(255, 26, 23, 23),
+        surface: darkSurface,
         onSurface: Colors.white,
         secondary: Colors.grey,
         onSecondary: Colors.white,

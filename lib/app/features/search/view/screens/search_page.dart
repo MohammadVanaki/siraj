@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/common/widgets/empty_widget.dart';
-import 'package:love/app/core/common/widgets/internal_page.dart';
-import 'package:love/app/features/search/view/controller/search_controller.dart';
-import 'package:love/app/features/search/view/widgets/search_item.dart';
+import 'package:mawsueat/app/core/common/widgets/custom_app_bar.dart';
+import 'package:mawsueat/app/core/common/widgets/empty_widget.dart';
+import 'package:mawsueat/app/core/common/widgets/internal_page.dart';
+import 'package:mawsueat/app/features/search/view/controller/search_controller.dart';
+import 'package:mawsueat/app/features/search/view/widgets/search_item.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
@@ -13,7 +14,9 @@ class SearchPage extends StatelessWidget {
     final mainSearchController = Get.put(MainSearchController());
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: const CustomAppBar(
+        title: 'البحث',
+      ),
       body: InternalPage(
         child: Column(
           children: [
@@ -29,7 +32,7 @@ class SearchPage extends StatelessWidget {
                     hintText: 'بحث...',
                     hintStyle: TextStyle(
                       color: Theme.of(context).hintColor.withAlpha(200),
-                      fontFamily: 'dijlah',
+                      fontFamily: 'IBMPlexSansArabic',
                     ),
                     filled: true,
                     fillColor: Theme.of(context).colorScheme.surface,
@@ -76,7 +79,7 @@ class SearchPage extends StatelessWidget {
                     ),
                   ),
                   style: TextStyle(
-                    fontFamily: 'dijlah',
+                    fontFamily: 'IBMPlexSansArabic',
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                   cursorColor: Theme.of(context).colorScheme.primary,

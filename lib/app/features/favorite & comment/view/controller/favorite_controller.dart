@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:get/get.dart';
-import 'package:love/app/core/common/constants/constants.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
 
 class FavoriteController extends GetxController {
   RxInt selectedTabIndex = 1.obs;
@@ -43,6 +43,41 @@ class FavoriteController extends GetxController {
     Constants.localStorage.write('bookmark', encodedBookmarks);
   }
 
+  bool isBookmarked(int bookId, int pageNumber) {
+    return bookmarksList.any(
+      (bookmark) =>
+          bookmark['bookId'].toString() == bookId.toString() &&
+          bookmark['pageNumber'].toString() == pageNumber.toString(),
+    );
+  }
+
+  bool toggleBookmark({
+    required int bookId,
+    required int pageNumber,
+    required String bookName,
+  }) {
+    var index = bookmarksList.indexWhere(
+      (bookmark) =>
+          bookmark['bookId'].toString() == bookId.toString() &&
+          bookmark['pageNumber'].toString() == pageNumber.toString(),
+    );
+
+    bool added;
+    if (index != -1) {
+      bookmarksList.removeAt(index);
+      added = false;
+    } else {
+      bookmarksList.add({
+        'bookId': bookId,
+        'pageNumber': pageNumber,
+        'bookName': bookName,
+      });
+      added = true;
+    }
+    saveBookmarks();
+    return added;
+  }
+
   void removeBookmarkAt(int bookId, int pageNumber) {
     var index = bookmarksList.indexWhere(
       (bookmark) =>
@@ -72,8 +107,63 @@ class FavoriteController extends GetxController {
     }
   }
 
-  void deleteComment(int commentId) {
-    commentsList.removeWhere((comment) => comment['id'] == commentId);
-    Constants.localStorage.write('allBookComments', commentsList);
+  bool hasComment(int bookId, int pageNumber) {
+    return commentsList.any(
+      (c) =>
+          c['idBook'].toString() == bookId.toString() &&
+          c['idPage'].toString() == (pageNumber + 1).toString(),
+    );
+  }
+
+  Map<String, dynamic>? getComment(int bookId, int pageNumber) {
+    final index = commentsList.indexWhere(
+      (c) =>
+          c['idBook'].toString() == bookId.toString() &&
+          c['idPage'].toString() == (pageNumber + 1).toString(),
+    );
+    if (index != -1) return commentsList[index];
+    return null;
+  }
+
+  void saveComment({
+    required int bookId,
+    required String bookName,
+    required int pageNumber,
+    required String title,
+    required String comment,
+  }) {
+    final existingIndex = commentsList.indexWhere(
+      (c) =>
+          c['idBook'].toString() == bookId.toString() &&
+          c['idPage'].toString() == (pageNumber + 1).toString(),
+    );
+
+    final now = DateTime.now().toIso8601String();
+    if (existingIndex != -1) {
+      commentsList[existingIndex] = {
+        ...commentsList[existingIndex],
+        'title': title,
+        'comment': comment,
+        'updatedAt': now,
+      };
+    } else {
+      commentsList.add({
+        'id': DateTime.now().millisecondsSinceEpoch,
+        'idBook': bookId,
+        'bookName': bookName,
+        'idPage': pageNumber + 1,
+        'title': title,
+        'comment': comment,
+        'createdAt': now,
+      });
+    }
+    commentsList.refresh();
+    Constants.localStorage.write('allBookComments', commentsList.toList());
+  }
+
+  void deleteComment(dynamic commentId) {
+    commentsList.removeWhere((comment) => comment['id'].toString() == commentId.toString());
+    commentsList.refresh();
+    Constants.localStorage.write('allBookComments', commentsList.toList());
   }
 }

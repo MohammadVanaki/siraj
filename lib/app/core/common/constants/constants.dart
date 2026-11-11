@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 
 class Constants {
-  static const String appTitle = 'الحبوة';
+  static const String appTitle = 'السراج';
   static const String baseUrl = "https://library.yaqoobi.net/api/";
   static String fcmToken = '';
   static final GetStorage localStorage = GetStorage();

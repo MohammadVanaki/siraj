@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
 
-// 💡 Controller for managing bottom navigation bar state
 class BottomNavigationController extends GetxController {
-  // Reactive selected index
   final RxInt selectedIndex = 0.obs;
 
-  // Called when a navigation item is tapped
   void onItemTapped(int index) {
     selectedIndex.value = index;
+    if (index == 1) {
+      FavoriteController favController;
+      if (Get.isRegistered<FavoriteController>()) {
+        favController = Get.find<FavoriteController>();
+      } else {
+        favController = Get.put(FavoriteController());
+      }
+      favController.loadBookmarks();
+      favController.loadComments();
+    }
   }
-
-  final List<IconData> icons = const [
-    Icons.home_rounded,
-    Icons.info_outline_rounded,
-    Icons.settings_rounded,
-    Icons.favorite_rounded,
-  ];
 }

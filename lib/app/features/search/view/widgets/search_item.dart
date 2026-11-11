@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:love/app/config/functions.dart';
-import 'package:love/app/core/common/constants/constants.dart';
-import 'package:love/app/features/home/view/screens/content_page.dart';
+import 'package:mawsueat/app/config/functions.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
+import 'package:mawsueat/app/features/home/view/screens/content_page.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class SearchItem extends StatelessWidget {
@@ -66,7 +66,7 @@ class SearchItem extends StatelessWidget {
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onPrimary,
                             fontSize: 15,
-                            fontFamily: 'dijlah',
+                            fontFamily: 'IBMPlexSansArabic',
                             overflow: TextOverflow.ellipsis,
                           ),
                           softWrap: false,

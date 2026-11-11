@@ -1,12 +1,12 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:love/app/core/common/constants/constants.dart';
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
 
 
 class FirebaseNotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications =
-      FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin _localNotifications =
+  //     FlutterLocalNotificationsPlugin();
 
   // Initialize notifications and setup FCM
   Future<void> initializeNotifications() async {
@@ -32,8 +32,12 @@ class FirebaseNotificationService {
       _showLocalNotification(message);
     });
 
-    // Subscribe to a topic
-    await subscribeToTopic("alhabwah_android");
+    // Subscribe to a topic if notifications are enabled
+    final bool isEnabled =
+        Constants.localStorage.read('notifications_enabled') ?? true;
+    if (isEnabled) {
+      await subscribeToTopic("alhabwah_android");
+    }
   }
 
   // Subscribe to a topic
@@ -48,38 +52,38 @@ class FirebaseNotificationService {
 
   // Configure local notifications
   Future<void> _configureLocalNotifications() async {
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    // const AndroidInitializationSettings androidSettings =
+    //     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings settings = InitializationSettings(
-      android: androidSettings,
-    );
+    // const InitializationSettings settings = InitializationSettings(
+    //   android: androidSettings,
+    // );
 
-    await _localNotifications.initialize(settings);
+    // await _localNotifications.initialize(settings);
   }
 
   // Display a local notification for a foreground message
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
-    const androidDetails = AndroidNotificationDetails(
-      'default_channel_id', // Channel ID
-      'Default', // Channel name
-      channelDescription: 'Default notifications', // Channel description
-      importance: Importance.high,
-      priority: Priority.high,
-    );
+    // const androidDetails = AndroidNotificationDetails(
+    //   'default_channel_id', // Channel ID
+    //   'Default', // Channel name
+    //   channelDescription: 'Default notifications', // Channel description
+    //   importance: Importance.high,
+    //   priority: Priority.high,
+    // );
 
-    NotificationDetails platformDetails = const NotificationDetails(
-      android: androidDetails,
-    );
+    // NotificationDetails platformDetails = const NotificationDetails(
+    //   android: androidDetails,
+    // );
 
     if (notification != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        platformDetails,
-      );
+      // await _localNotifications.show(
+      //   notification.hashCode,
+      //   notification.title,
+      //   notification.body,
+      //   platformDetails,
+      // );
     }
   }
 }

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Glow -->
+    <radialGradient id="kaabaGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#DAA520" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Gold Gradient -->
+    <linearGradient id="goldBand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3A8"/>
+      <stop offset="30%" stop-color="#E5C158"/>
+      <stop offset="70%" stop-color="#C59B27"/>
+      <stop offset="100%" stop-color="#8F6B0C"/>
+    </linearGradient>
+
+    <linearGradient id="goldDoor" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FDF0A6"/>
+      <stop offset="50%" stop-color="#E5B83B"/>
+      <stop offset="100%" stop-color="#9E7611"/>
+    </linearGradient>
+
+    <!-- Wall Gradients -->
+    <linearGradient id="frontWall" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2D2D2D"/>
+      <stop offset="100%" stop-color="#151515"/>
+    </linearGradient>
+
+    <linearGradient id="sideWall" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#181818"/>
+      <stop offset="100%" stop-color="#0D0D0D"/>
+    </linearGradient>
+
+    <linearGradient id="roofGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4A4A4A"/>
+      <stop offset="100%" stop-color="#333333"/>
+    </linearGradient>
+    
+    <linearGradient id="marbleBase" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F5F5F0"/>
+      <stop offset="100%" stop-color="#D0D0C8"/>
+    </linearGradient>
+
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Aura Glow -->
+  <circle cx="256" cy="256" r="230" fill="url(#kaabaGlow)"/>
+
+  <g filter="url(#dropShadow)">
+    <!-- Base Platform (Shadharwan - الرخام الأبيض أسفل الكعبة) -->
+    <!-- Roof Top -->
+    <polygon points="256,90 395,145 256,195 117,145" fill="url(#roofGrad)" />
+    
+    <!-- Base Shadharwan -->
+    <polygon points="107,390 256,450 256,462 107,402" fill="url(#marbleBase)" opacity="0.9"/>
+    <polygon points="256,450 405,390 405,402 256,462" fill="#BEBEB4" opacity="0.9"/>
+
+    <!-- Left Front Wall -->
+    <polygon points="117,145 256,195 256,440 117,385" fill="url(#frontWall)" />
+
+    <!-- Right Wall -->
+    <polygon points="256,195 395,145 395,385 256,440" fill="url(#sideWall)" />
+
+    <!-- Upper Gold Belt (Hizam / الحزام المذهب) -->
+    <!-- Left side of belt -->
+    <polygon points="117,192 256,242 256,267 117,217" fill="url(#goldBand)" />
+    <line x1="117" y1="205" x2="256" y2="255" stroke="#7A5B08" stroke-width="1.5" stroke-dasharray="4,3"/>
+    
+    <!-- Right side of belt -->
+    <polygon points="256,242 395,192 395,217 256,267" fill="url(#goldBand)" />
+    <line x1="256" y1="255" x2="395" y2="205" stroke="#7A5B08" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+    <!-- Secondary Gold Belt / Pattern -->
+    <polygon points="117,290 256,340 256,346 117,296" fill="url(#goldBand)" opacity="0.75"/>
+    <polygon points="256,340 395,290 395,296 256,346" fill="url(#goldBand)" opacity="0.75"/>
+
+    <!-- Kaaba Door (Bab al-Kaaba / باب الكعبة) on Right/Front Wall -->
+    <!-- Door Frame -->
+    <polygon points="175,250 225,268 225,372 175,352" fill="url(#goldDoor)" />
+    <!-- Inner Door Details -->
+    <polygon points="178,255 222,271 222,367 178,349" fill="#9E7611" opacity="0.4"/>
+    <line x1="200" y1="262" x2="200" y2="359" stroke="#574005" stroke-width="2"/>
+
+    <!-- Door Lock / Key Emblem -->
+    <circle cx="200" cy="315" r="4" fill="#FFEAA7"/>
+
+    <!-- Golden Spout (Mizab ar-Rahmah / ميزاب الرحمة) on top left -->
+    <polygon points="170,120 185,126 182,142 167,136" fill="url(#goldBand)"/>
+
+    <!-- Black Stone Corner Indicator (Rukn al-Aswad / الركن الأسود) -->
+    <polygon points="253,425 259,425 259,442 253,442" fill="#FFD700"/>
+    <circle cx="256" cy="433" r="5" fill="#1A1A1A" stroke="#FFD700" stroke-width="1.5"/>
+  </g>
+</svg>

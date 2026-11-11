@@ -1,103 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:love/app/features/about/view/screens/about_page.dart';
-import 'package:love/app/features/favorite%20&%20comment/view/screens/favorite_page.dart';
-import 'package:love/app/features/home/view/controller/navigation_controller.dart';
-import 'package:love/app/features/home/view/screens/subject_page.dart';
-import 'package:love/app/features/home/view/widgets/bottom_navigation_bar.dart';
-import 'package:love/app/features/home/view/widgets/custom_drawer.dart';
-import 'package:love/app/features/search/view/screens/search_page.dart';
-import 'package:love/app/features/setting/view/screens/setting_page.dart';
+import 'package:mawsueat/app/features/home/view/screens/subject_page.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class HomePage extends StatelessWidget {
-  HomePage({super.key});
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final BottmNavigationController navigationController =
-        Get.find<BottmNavigationController>();
     return Scaffold(
-      key: scaffoldKey,
       appBar: AppBar(
         title: Row(
           children: [
             ZoomTapAnimation(
               onTap: () {
-                scaffoldKey.currentState?.openDrawer();
+                if (Navigator.canPop(context)) {
+                  Navigator.of(context).pop();
+                } else {
+                  Get.back();
+                }
               },
-              child: SvgPicture.asset(
-                'assets/svgs/menu-burger.svg',
-                colorFilter: ColorFilter.mode(
-                  Theme.of(context).colorScheme.onPrimary,
-                  BlendMode.srcIn,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withAlpha(20)
+                      : Theme.of(context).colorScheme.onPrimary.withAlpha(20),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             ),
             const Gap(10),
             Text(
-              "الحبوة",
+              'موسوعة أهل البيت',
               style: TextStyle(
                 fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'IBMPlexSansArabic',
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
         ),
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontSize: 18,
           color: Colors.black,
-          fontFamily: 'SegoeUI',
+          fontFamily: 'IBMPlexSansArabic',
         ),
         elevation: 0,
         automaticallyImplyLeading: false,
         shadowColor: Colors.black26,
         leading: null,
-        actions: [
-          ZoomTapAnimation(
-            onTap: () {
-              Get.to(SearchPage());
-            },
-            child: Container(
-              margin: EdgeInsets.only(left: 10),
-              child: SvgPicture.asset(
-                'assets/svgs/search.svg',
-                colorFilter: ColorFilter.mode(
-                  Theme.of(context).colorScheme.onPrimary,
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
-      drawer: CustomDrawer(sliderDrawerKey: scaffoldKey),
-      body: SafeArea(
+      body: const SafeArea(
         top: false,
         bottom: true,
-        child: SizedBox(
-          width: size.width,
-          height: size.height,
-          child: Obx(
-            () => PageView(
-              controller: navigationController.pageController.value,
-              onPageChanged: navigationController.animatedToPage,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                const SubjectPage(),
-                SettingPage(isDrawer: false),
-                AboutPage(isDrawer: false),
-                FavoritePage(isDrawer: false),
-              ],
-            ),
-          ),
-        ),
+        child: SubjectPage(),
       ),
-      bottomNavigationBar: CostumBottomNavigationBar(),
     );
   }
 }
+
+typedef MawsueatPage = HomePage;
+
+

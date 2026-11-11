@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/common/widgets/custom_loading.dart';
-import 'package:love/app/core/database/db_helper.dart';
-import 'package:love/app/features/home/view/controller/content_controller.dart';
-import 'package:love/app/features/home/view/screens/home_page.dart';
-import 'package:love/app/features/update/controller/updated_pages_controller.dart';
+import 'package:mawsueat/app/core/common/widgets/custom_loading.dart';
+import 'package:mawsueat/app/features/home/view/controller/content_controller.dart';
+import 'package:mawsueat/app/features/home/view/screens/home_dashboard_page.dart';
 
 // splash_page.dart
 class SplashPage extends StatefulWidget {
@@ -15,8 +13,6 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  bool _isCheckingUpdates = false;
-  bool _updatesApplied = false;
   bool _controllerInitialized = false;
 
   @override
@@ -29,20 +25,13 @@ class _SplashPageState extends State<SplashPage> {
     try {
       print('🚀 Starting app initialization...');
 
-      // 1. Initialize database
-      print('📦 Initializing database...');
-      await DBHelper.initDb();
-
-      // 2. Initialize ContentController (الآن اینجا ثبتش میکنیم)
+      // 2. Initialize ContentController
       await _initializeContentController();
 
-      // 3. Start update check (async - don't await)
-      _startUpdateCheck();
+      // 3. Minimum splash time
+      await Future.delayed(const Duration(seconds: 2));
 
-      // 4. Minimum splash time
-      await Future.delayed(const Duration(seconds: 3));
-
-      // 5. Navigate to home
+      // 4. Navigate to home
       if (mounted && _controllerInitialized) {
         _navigateToHome();
       }
@@ -58,16 +47,13 @@ class _SplashPageState extends State<SplashPage> {
     try {
       print('🔄 Initializing ContentController...');
 
-      // مطمئن شویم قبلاً ثبت نشده
       if (Get.isRegistered<ContentController>()) {
         print('⚠️ ContentController already exists, removing...');
         await Get.delete<ContentController>();
       }
 
-      // ثبت ContentController با lazyPut و fenix: true
       Get.lazyPut(() => ContentController(), fenix: true);
 
-      // منتظر شویم کنترلر ساخته شود
       final controller = Get.find<ContentController>();
       print('✅ ContentController initialized successfully');
 
@@ -78,89 +64,47 @@ class _SplashPageState extends State<SplashPage> {
     }
   }
 
-  Future<void> _startUpdateCheck() async {
-    if (_isCheckingUpdates) return;
-
-    _isCheckingUpdates = true;
-
-    try {
-      print('🔄 Checking for updates in background...');
-      final updateController = Get.find<UpdatedPagesController>();
-
-      // زمان‌بندی: منتظر کمی بمان تا UI لود شود
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      // چک آپدیت را شروع کن (forceCheck: true برای اولین بار)
-      await updateController.checkAndApplyUpdates(showUI: false);
-
-      if (updateController.updatedPages.isNotEmpty) {
-        _updatesApplied = true;
-        print('✅ Background update completed successfully');
-      }
-    } catch (e) {
-      print('❌ Background update error: $e');
-    } finally {
-      _isCheckingUpdates = false;
-    }
-  }
-
   void _navigateToHome() {
     if (mounted) {
-      // کمی تأخیر برای اطمینان
       Future.delayed(const Duration(milliseconds: 300), () {
-        Get.off(() => HomePage());
+        Get.off(() => HomeDashboardPage());
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final size = mediaQuery.size;
+    // Detect tablet or wide aspect ratio
+    final isTablet =
+        size.shortestSide >= 600 || (size.width / size.height) > 0.58;
+
     return Scaffold(
-      body: SizedBox(
-        width: Get.width,
-        height: Get.height,
+      backgroundColor: const Color(0xFFD2E7DE),
+      body: SizedBox.expand(
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Image.asset(
-              'assets/images/b_al7aboah002.jpg',
-              width: Get.width,
-              height: Get.height,
-              fit: BoxFit.fill,
+            Center(
+              child: Image.asset(
+                isTablet
+                    ? 'assets/images/alseraj-splash-tablet.jpg'
+                    : 'assets/images/alseraj-splash.jpg',
+                width: size.width,
+                height: size.height,
+                fit: BoxFit.cover,
+              ),
             ),
 
             Positioned(
-              bottom: 100,
-              child: Column(
-                children: [
-                  const CustomLoading(color: Colors.white),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    _controllerInitialized
-                        ? (_updatesApplied ? '✅ تم التحديث' : 'جاهز...')
-                        : 'جاري التحميل...',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-
-                  if (!_controllerInitialized)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Text(
-                        'جاري تحميل المحتوى...',
-                        style: TextStyle(color: Colors.yellow, fontSize: 12),
-                      ),
-                    ),
-
-                  if (_isCheckingUpdates)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Text(
-                        'جاري التحقق من التحديثات...',
-                        style: TextStyle(color: Colors.yellow, fontSize: 12),
-                      ),
-                    ),
-                ],
+              bottom: isTablet ? size.height * 0.16 : size.height * 0.18,
+              left: 0,
+              right: 0,
+              child: const Center(
+                child: CustomLoading(
+                  color: Color(0xFF165B4C),
+                ),
               ),
             ),
           ],

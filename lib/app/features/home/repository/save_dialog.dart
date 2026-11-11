@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/common/constants/constants.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
 
 void showSaveBookDialog(BuildContext context, String bookName, int currentPage,
     int bookId, int total) {

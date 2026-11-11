@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:love/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
 
 class BottmNavigationController extends GetxController {
   Rx<PageController> pageController = PageController().obs;

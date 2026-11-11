@@ -1,11 +1,11 @@
 {
-    "name": "love",
-    "short_name": "love",
+    "name": "موسوعة اهل البيت",
+    "short_name": "mawsueat",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "موسوعة اهل البيت",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

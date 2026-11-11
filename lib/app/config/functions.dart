@@ -45,7 +45,7 @@ List<TextSpan> highlightSearchTerm(String text, String searchTerm) {
       spans.add(TextSpan(
         text: text.substring(start, match.start),
         style: TextStyle(
-            fontFamily: 'dijlah'), // فونت فمیلی را اینجا هم اضافه کنید
+            fontFamily: 'IBMPlexSansArabic'), // فونت فمیلی را اینجا هم اضافه کنید
       ));
     }
 
@@ -55,7 +55,7 @@ List<TextSpan> highlightSearchTerm(String text, String searchTerm) {
       style: TextStyle(
         color: Colors.yellow, // رنگ هایلایت
         fontWeight: FontWeight.w700, // فونت بولد
-        fontFamily: 'dijlah', // فونت فمیلی برای هایلایت
+        fontFamily: 'IBMPlexSansArabic', // فونت فمیلی برای هایلایت
       ),
     ));
 
@@ -67,7 +67,7 @@ List<TextSpan> highlightSearchTerm(String text, String searchTerm) {
   if (start < text.length) {
     spans.add(TextSpan(
       text: text.substring(start),
-      style: TextStyle(fontFamily: 'dijlah'), // فونت فمیلی برای باقی متن
+      style: TextStyle(fontFamily: 'IBMPlexSansArabic'), // فونت فمیلی برای باقی متن
     ));
   }
 

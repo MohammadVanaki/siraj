@@ -25,7 +25,16 @@ class EmptyWidget extends StatelessWidget {
                 height: Get.height * .5,
               ),
             ),
-            Text(title),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'IBMPlexSansArabic',
+                fontSize: 14.5,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(170),
+              ),
+            ),
             const Gap(10),
           ],
         ),

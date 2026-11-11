@@ -1,60 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:love/app/features/home/view/controller/navigation_controller.dart';
+import 'package:mawsueat/app/features/home/view/controller/navigation_controller.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
 class CostumBottomNavigationBar extends StatelessWidget {
-  final BottmNavigationController navigationController =
-      Get.find<BottmNavigationController>();
+  const CostumBottomNavigationBar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final BottmNavigationController navigationController =
+        Get.find<BottmNavigationController>();
+
     return Container(
-      width: Get.width - 80,
-      height: 60,
-      padding: const EdgeInsets.only(top: 5, bottom: 5),
+      height: 52,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         boxShadow: [
           BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: Offset(4, 4),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _bottomAppBarItem(
-            icon: 'house',
+            context: context,
+            controller: navigationController,
             page: 0,
-            context: context,
-            selectIcon: 'fill/house-chimney',
             title: 'الرئيسية',
+            selectedIcon: Icons.menu_book_rounded,
+            unselectedIcon: Icons.menu_book_outlined,
           ),
           _bottomAppBarItem(
-            icon: 'settings',
+            context: context,
+            controller: navigationController,
             page: 1,
-            context: context,
-            selectIcon: 'fill/settings',
-            title: 'الاعدادات',
+            title: 'الإعدادات',
+            selectedIcon: Icons.settings_rounded,
+            unselectedIcon: Icons.settings_outlined,
           ),
           _bottomAppBarItem(
-            icon: 'info',
+            context: context,
+            controller: navigationController,
             page: 2,
-            context: context,
-            selectIcon: 'fill/info',
             title: 'حول التطبيق',
+            selectedIcon: Icons.info_rounded,
+            unselectedIcon: Icons.info_outline_rounded,
           ),
           _bottomAppBarItem(
-            icon: 'star',
-            page: 3,
             context: context,
-            selectIcon: 'fill/star-fill',
-            title: 'اشارات',
+            controller: navigationController,
+            page: 3,
+            title: 'الإشارات',
+            selectedIcon: Icons.bookmarks_rounded,
+            unselectedIcon: Icons.bookmarks_outlined,
           ),
         ],
       ),
@@ -62,57 +64,60 @@ class CostumBottomNavigationBar extends StatelessWidget {
   }
 
   Widget _bottomAppBarItem({
-    required String icon,
-    required String title,
-    required String selectIcon,
-    required int page,
     required BuildContext context,
+    required BottmNavigationController controller,
+    required int page,
+    required String title,
+    required IconData selectedIcon,
+    required IconData unselectedIcon,
   }) {
-    return ZoomTapAnimation(
-      onTap: () {
-        navigationController.goToPage(page);
-      },
-      child: Obx(() {
-        final isSelected = navigationController.currentPage.value == page;
-        return Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(shape: BoxShape.circle),
-              child: Center(
-                child: SvgPicture.asset(
-                  'assets/svgs/${isSelected ? selectIcon : icon}.svg',
-                  colorFilter: ColorFilter.mode(
-                    isSelected
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onPrimary.withAlpha(120),
-                    BlendMode.srcIn,
-                  ),
-                  width: 25,
-                  height: 25,
+    final theme = Theme.of(context);
+    final activeColor = theme.colorScheme.onPrimary;
+    final inactiveColor = theme.colorScheme.onPrimary.withOpacity(0.45);
+
+    return Expanded(
+      child: ZoomTapAnimation(
+        onTap: () {
+          controller.goToPage(page);
+        },
+        child: Obx(() {
+          final isSelected = controller.currentPage.value == page;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? activeColor.withOpacity(0.14)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isSelected ? selectedIcon : unselectedIcon,
+                  size: 21,
+                  color: isSelected ? activeColor : inactiveColor,
                 ),
               ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onPrimary.withAlpha(120),
-                  ),
+              const SizedBox(height: 1),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontFamily: 'IBMPlexSansArabic',
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? activeColor : inactiveColor,
                 ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        }),
+      ),
     );
   }
 }

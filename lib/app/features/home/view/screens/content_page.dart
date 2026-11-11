@@ -11,15 +11,16 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:love/app/config/status.dart';
-import 'package:love/app/core/common/constants/constants.dart';
-import 'package:love/app/core/common/widgets/custom_loading.dart';
-import 'package:love/app/core/common/widgets/empty_widget.dart';
-import 'package:love/app/features/home/repository/modal_comment.dart';
-import 'package:love/app/features/home/repository/save_dialog.dart';
-import 'package:love/app/features/home/view/controller/content_controller.dart';
-import 'package:love/app/features/home/view/controller/search_content_controller.dart';
-import 'package:love/app/features/setting/view/controller/settings_controller.dart';
+import 'package:mawsueat/app/config/status.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
+import 'package:mawsueat/app/core/common/widgets/custom_loading.dart';
+import 'package:mawsueat/app/core/common/widgets/empty_widget.dart';
+import 'package:mawsueat/app/features/favorite%20&%20comment/view/controller/favorite_controller.dart';
+import 'package:mawsueat/app/features/home/repository/modal_comment.dart';
+import 'package:mawsueat/app/features/home/repository/save_dialog.dart';
+import 'package:mawsueat/app/features/home/view/controller/content_controller.dart';
+import 'package:mawsueat/app/features/home/view/controller/search_content_controller.dart';
+import 'package:mawsueat/app/features/setting/view/controller/settings_controller.dart';
 
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 
@@ -301,6 +302,7 @@ class ContentPage extends StatelessWidget {
                         bookName,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -344,12 +346,16 @@ class ContentPage extends StatelessWidget {
           ],
         ),
         body: Obx(() {
-          if (contentController.status.value == Status.loading) {
+          if (contentController.status.value == Status.loading ||
+              contentController.isBookLoading(bookId)) {
             return const Center(child: CustomLoading());
           }
 
           if (contentController.pages.isEmpty) {
-            return const Center(child: EmptyWidget(title: 'لا يوجد صفحة'));
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              contentController.preparePagesForBook(bookId);
+            });
+            return const Center(child: CustomLoading());
           }
 
           if (contentController.status.value == Status.success &&
@@ -472,7 +478,7 @@ class ContentPage extends StatelessWidget {
                                       originalText,
                                     );
 
-                                    // لیست اسامی برای بولد کردن
+                                    // List of names to highlight
                                     final namesToBold = [
                                       'السيد الخامنئي',
                                       'السيد الخوئي',
@@ -484,7 +490,7 @@ class ContentPage extends StatelessWidget {
                                       'الشيخ الخراساني',
                                     ];
 
-                                    // بولد کردن همه اسامی در متن
+                                    // Make names bold and slightly bigger
                                     for (final name in namesToBold) {
                                       if (name.trim().isNotEmpty) {
                                         final regex = RegExp(
@@ -492,10 +498,12 @@ class ContentPage extends StatelessWidget {
                                           caseSensitive: false,
                                           dotAll: true,
                                         );
+
                                         processedText = processedText
                                             .replaceAllMapped(
                                               regex,
-                                              (match) => '<b>${match[0]}</b>',
+                                              (match) =>
+                                                  '<span style="font-weight:700; font-size: 1.15em;">${match[0]}</span>',
                                             );
                                       }
                                     }
@@ -621,6 +629,13 @@ class ContentPage extends StatelessWidget {
                                       'bookmark',
                                       jsonEncode(bookmarks),
                                     );
+
+                                    if (Get.isRegistered<
+                                      FavoriteController
+                                    >()) {
+                                      Get.find<FavoriteController>()
+                                          .loadBookmarks();
+                                    }
                                   },
                                 );
 
@@ -1381,27 +1396,33 @@ class ContentPage extends StatelessWidget {
                                         child: DropdownButtonHideUnderline(
                                           child: DropdownButton<String>(
                                             value: settingsController
-                                                .fontFamily
-                                                .value,
+                                                    .availableFonts
+                                                    .any((f) =>
+                                                        f.id ==
+                                                        settingsController
+                                                            .effectiveFontFamily)
+                                                ? settingsController
+                                                    .effectiveFontFamily
+                                                : 'dijlah',
                                             isExpanded: true,
-                                            items: const [
-                                              DropdownMenuItem(
-                                                value: 'لوتوس',
-                                                child: Text("لوتوس"),
-                                              ),
-                                              DropdownMenuItem(
-                                                value: 'البهيج',
-                                                child: Text("البهيج"),
-                                              ),
-                                              DropdownMenuItem(
-                                                value: 'دجلة',
-                                                child: Text("دجلة"),
-                                              ),
-                                            ],
-                                            onChanged: (value) async {
-                                              settingsController.setFontFamily(
-                                                value!,
+                                            items: settingsController
+                                                .availableFonts
+                                                .map((font) {
+                                              return DropdownMenuItem(
+                                                value: font.id,
+                                                child: Text(
+                                                  font.name,
+                                                  style: TextStyle(
+                                                    fontFamily:
+                                                        font.fontFamily,
+                                                  ),
+                                                ),
                                               );
+                                            }).toList(),
+                                            onChanged: (value) async {
+                                              if (value == null) return;
+                                              settingsController
+                                                  .setFontFamily(value);
                                               settingsController
                                                       .isApplying
                                                       .value =
@@ -1412,7 +1433,8 @@ class ContentPage extends StatelessWidget {
                                                       .loadFont();
 
                                               Future.delayed(
-                                                Duration(milliseconds: 500),
+                                                const Duration(
+                                                    milliseconds: 500),
                                                 () async {
                                                   await contentController
                                                       .inAppWebViewController
@@ -1428,7 +1450,7 @@ class ContentPage extends StatelessWidget {
                                                     style.innerHTML = `$css`;
 
                                                     document.querySelectorAll('.text_style').forEach(function(el) {
-                                                      el.style.setProperty('font-family', '$value', 'important');
+                                                      el.style.setProperty('font-family', '${settingsController.effectiveFontFamily}', 'important');
                                                     });
                                                   """,
                                                       );

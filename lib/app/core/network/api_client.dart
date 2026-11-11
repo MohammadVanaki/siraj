@@ -2,32 +2,42 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
-import 'package:love/app/core/common/constants/api_constants.dart';
+import 'package:mawsueat/app/core/common/constants/api_constants.dart';
 
 class ApiClient extends GetxService {
+  Uri _buildUri(String endpoint, [Map<String, String>? queryParameters]) {
+    final isFullUrl =
+        endpoint.startsWith('http://') || endpoint.startsWith('https://');
+    final baseUri = isFullUrl
+        ? Uri.parse(endpoint)
+        : Uri.parse('${ApiConstants.baseUrl}$endpoint');
+    return queryParameters != null && queryParameters.isNotEmpty
+        ? baseUri.replace(queryParameters: queryParameters)
+        : baseUri;
+  }
+
   Future<Map<String, dynamic>> get(
     String endpoint, {
     Map<String, String>? queryParameters,
+    Map<String, String>? headers,
   }) async {
     try {
-      final uri = Uri.parse(
-        '${ApiConstants.baseUrl}$endpoint',
-      ).replace(queryParameters: queryParameters);
+      final uri = _buildUri(endpoint, queryParameters);
 
       print('API GET Request: $uri');
 
-      final response = await http.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      );
+      final requestHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (headers != null) ...headers,
+      };
+
+      final response = await http.get(uri, headers: requestHeaders);
 
       print('API Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        return json.decode(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('فشل في جلب البيانات: ${response.statusCode}');
       }
@@ -39,20 +49,24 @@ class ApiClient extends GetxService {
   Future<Map<String, dynamic>> post(
     String endpoint, {
     Map<String, dynamic>? data,
+    Map<String, String>? headers,
+    required Map<String, double> body,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final uri = _buildUri(endpoint);
 
       print('API POST Request: $uri');
       print('POST Data: $data');
 
-      // برای application/x-www-form-urlencoded
+      final requestHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        if (headers != null) ...headers,
+      };
+
       final response = await http.post(
         uri,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-        },
+        headers: requestHeaders,
         body: _encodeFormData(data),
       );
 
@@ -60,7 +74,7 @@ class ApiClient extends GetxService {
       print('API POST Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return json.decode(response.body);
+        return json.decode(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('فشل في إرسال البيانات: ${response.statusCode}');
       }
@@ -72,23 +86,27 @@ class ApiClient extends GetxService {
   Future<Map<String, dynamic>> put(
     String endpoint, {
     Map<String, dynamic>? data,
+    Map<String, String>? headers,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final uri = _buildUri(endpoint);
 
       print('API PUT Request: $uri');
 
+      final requestHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        if (headers != null) ...headers,
+      };
+
       final response = await http.put(
         uri,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-        },
+        headers: requestHeaders,
         body: _encodeFormData(data),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return json.decode(response.body);
+        return json.decode(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('فشل في تحديث البيانات: ${response.statusCode}');
       }
@@ -97,22 +115,25 @@ class ApiClient extends GetxService {
     }
   }
 
-  Future<Map<String, dynamic>> delete(String endpoint) async {
+  Future<Map<String, dynamic>> delete(
+    String endpoint, {
+    Map<String, String>? headers,
+  }) async {
     try {
-      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final uri = _buildUri(endpoint);
 
       print('API DELETE Request: $uri');
 
-      final response = await http.delete(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      );
+      final requestHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (headers != null) ...headers,
+      };
+
+      final response = await http.delete(uri, headers: requestHeaders);
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        return json.decode(response.body);
+        return json.decode(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('فشل في حذف البيانات: ${response.statusCode}');
       }
@@ -139,23 +160,27 @@ class ApiClient extends GetxService {
   Future<Map<String, dynamic>> postJson(
     String endpoint, {
     Map<String, dynamic>? data,
+    Map<String, String>? headers,
   }) async {
     try {
-      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final uri = _buildUri(endpoint);
 
       print('API POST JSON Request: $uri');
 
+      final requestHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (headers != null) ...headers,
+      };
+
       final response = await http.post(
         uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: requestHeaders,
         body: json.encode(data),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return json.decode(response.body);
+        return json.decode(utf8.decode(response.bodyBytes));
       } else {
         throw Exception('فشل في إرسال البيانات: ${response.statusCode}');
       }

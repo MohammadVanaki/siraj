@@ -1,75 +1,139 @@
-import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:flutter/services.dart';
-import 'package:love/app/core/common/constants/constants.dart';
-import 'package:love/app/core/database/db_helper.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:get/get.dart';
+import 'package:mawsueat/app/core/common/constants/api_constants.dart';
+import 'package:mawsueat/app/core/common/constants/constants.dart';
+import 'package:mawsueat/app/core/network/api_client.dart';
 
 class ContentRepository {
-  // late final dynamic _dbFactory = _initDbFactory();
-
-  // dynamic _initDbFactory() {
-  //   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-  //     sqfliteFfiInit();
-  //     return databaseFactoryFfi;
-  //   } else {
-  //     return sqflite.databaseFactory;
-  //   }
-  // }
-  Future<Directory> getWindowsSaveDirectory() async {
-    final appSupportDir = await getApplicationSupportDirectory();
-
-    final alraheeqDir = Directory(join(appSupportDir.path, 'db'));
-
-    if (!await alraheeqDir.exists()) {
-      await alraheeqDir.create(recursive: true);
+  ApiClient get _apiClient {
+    if (Get.isRegistered<ApiClient>()) {
+      return Get.find<ApiClient>();
     }
-
-    return alraheeqDir;
+    return Get.put(ApiClient(), permanent: true);
   }
 
-  /// Returns the path of the SQLite database based on book ID
-  Future<String> getDatabasePath() async {
-    Directory dir;
-
-    if (Platform.isAndroid) {
-      dir =
-          await getExternalStorageDirectory() ??
-          await getApplicationDocumentsDirectory();
-    } else if (Platform.isIOS) {
-      dir = await getApplicationDocumentsDirectory();
-    } else if (Platform.isWindows) {
-      dir = await getWindowsSaveDirectory();
-    } else {
-      dir =
-          await getDownloadsDirectory() ??
-          await getApplicationDocumentsDirectory();
+  /// دریافت لیست کتاب‌ها / موسوعه‌ها از سرور
+  /// GET /api/v1/encyclopedia/books
+  Future<List<Map<String, dynamic>>> getBooks() async {
+    try {
+      final response = await _apiClient.get(ApiConstants.encyclopediaBooks);
+      if (response['success'] == true && response['data'] is List) {
+        return List<Map<String, dynamic>>.from(
+          (response['data'] as List).map((e) => Map<String, dynamic>.from(e)),
+        );
+      }
+      return [];
+    } catch (e) {
+      print('❌ Error fetching encyclopedia books: $e');
+      rethrow;
     }
-
-    final dbName = 'db.sqlite';
-    final dbPath = join(dir.path, dbName);
-
-    final file = File(dbPath);
-    if (!await file.exists()) {
-      throw Exception('فایل دیتابیس $dbName پیدا نشد، لطفا ابتدا دانلود کنید.');
-    }
-
-    return dbPath;
   }
 
-  /// Loads the pages table from the SQLite database
-  Future<List<Map<String, dynamic>>> getPages(String dbPath) async {
-    final db = await DBHelper.dbFactory.openDatabase(dbPath);
-    return await db.query('b38_pages');
+  /// دریافت زیرمجموعه‌ها (ورودی‌های) یک کتاب
+  /// GET /api/v1/encyclopedia/books/{bookId}/entries?page={page}&limit={limit}
+  Future<List<Map<String, dynamic>>> getBookEntries(
+    int bookId, {
+    int page = 1,
+    int limit = 100,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        ApiConstants.encyclopediaBookEntries(bookId),
+        queryParameters: {
+          'page': page.toString(),
+          'limit': limit.toString(),
+        },
+      );
+      if (response['success'] == true && response['data'] is List) {
+        return List<Map<String, dynamic>>.from(
+          (response['data'] as List).map((e) => Map<String, dynamic>.from(e)),
+        );
+      }
+      return [];
+    } catch (e) {
+      print('❌ Error fetching entries for book $bookId: $e');
+      rethrow;
+    }
   }
 
-  /// Loads the groups table from the SQLite database
-  Future<List<Map<String, dynamic>>> getGroups(String dbPath) async {
-    final db = await DBHelper.dbFactory.openDatabase(dbPath);
-    return await db.query('b38_chapters');
+  /// دریافت تمامی زیرمجموعه‌های یک کتاب (صفحه‌بندی شده کامل)
+  Future<List<Map<String, dynamic>>> getAllBookEntries(int bookId) async {
+    final allEntries = <Map<String, dynamic>>[];
+    int currentPage = 1;
+    const limit = 100;
+
+    while (true) {
+      try {
+        final response = await _apiClient.get(
+          ApiConstants.encyclopediaBookEntries(bookId),
+          queryParameters: {
+            'page': currentPage.toString(),
+            'limit': limit.toString(),
+          },
+        );
+
+        if (response['success'] == true && response['data'] is List) {
+          final list = List<Map<String, dynamic>>.from(
+            (response['data'] as List).map((e) => Map<String, dynamic>.from(e)),
+          );
+          if (list.isEmpty) break;
+          allEntries.addAll(list);
+
+          // اگر تعداد دریافت شده کمتر از لیمیت بود یعنی به انتهای لیست رسیده‌ایم
+          if (list.length < limit) break;
+          currentPage++;
+        } else {
+          break;
+        }
+      } catch (e) {
+        print('❌ Error loading all entries for book $bookId at page $currentPage: $e');
+        break;
+      }
+    }
+
+    return allEntries;
+  }
+
+  /// دریافت متن کامل یک ورودی
+  /// GET /api/v1/encyclopedia/entries/{entryId}
+  Future<Map<String, dynamic>?> getEntryDetail(int entryId) async {
+    try {
+      final response = await _apiClient.get(
+        ApiConstants.encyclopediaEntryDetail(entryId),
+      );
+      if (response['success'] == true && response['data'] is Map) {
+        return Map<String, dynamic>.from(response['data']);
+      }
+      return null;
+    } catch (e) {
+      print('❌ Error fetching entry detail for id $entryId: $e');
+      return null;
+    }
+  }
+
+  /// جستجو در موسوعه از طریق سرور
+  /// GET /api/v1/encyclopedia/search?q={query}&page={page}
+  Future<List<Map<String, dynamic>>> searchEncyclopedia(
+    String query, {
+    int page = 1,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        ApiConstants.encyclopediaSearch,
+        queryParameters: {
+          'q': query,
+          'page': page.toString(),
+        },
+      );
+      if (response['success'] == true && response['data'] is List) {
+        return List<Map<String, dynamic>>.from(
+          (response['data'] as List).map((e) => Map<String, dynamic>.from(e)),
+        );
+      }
+      return [];
+    } catch (e) {
+      print('❌ Error searching encyclopedia: $e');
+      return [];
+    }
   }
 }
 
@@ -87,40 +151,4 @@ void toggleBookmark(dynamic bookId, String bookTitle) {
   }
 
   Constants.localStorage.write('bookmarks', bookmarks);
-}
-
-class Repository {
-  Future<String> getDatabasePath() async {
-    final databasesPath = await getDatabasesPath();
-    final path = join(databasesPath, 'db.sqlite');
-
-    // Check if database exists
-    final exists = await File(path).exists();
-
-    if (!exists) {
-      // Copy from assets if not exists
-      ByteData data = await rootBundle.load('assets/db/db.sqlite');
-      List<int> bytes = data.buffer.asUint8List(
-        data.offsetInBytes,
-        data.lengthInBytes,
-      );
-      await File(path).writeAsBytes(bytes, flush: true);
-    }
-
-    return path;
-  }
-
-  Future<Database> openDatabaseFromPath(String path) async {
-    return await openDatabase(path);
-  }
-
-  Future<List<Map<String, dynamic>>> getPages(String dbPath) async {
-    final db = await openDatabaseFromPath(dbPath);
-    return await db.query('b38_pages');
-  }
-
-  Future<List<Map<String, dynamic>>> getGroups(String dbPath) async {
-    final db = await openDatabaseFromPath(dbPath);
-    return await db.query('b38_chapters');
-  }
 }

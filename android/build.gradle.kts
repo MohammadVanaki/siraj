@@ -1,9 +1,8 @@
 buildscript {
     repositories {
-        google()
-        mavenCentral()
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
     }
-
     dependencies {
         classpath("com.google.gms:google-services:4.4.0")
     }
@@ -11,11 +10,10 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
-        mavenCentral()
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
     }
 }
-
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 

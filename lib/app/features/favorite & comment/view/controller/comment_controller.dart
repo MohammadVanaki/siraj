@@ -1,7 +1,7 @@
 // lib/app/features/comment/controller/comment_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:love/app/core/network/api_client.dart';
+import 'package:mawsueat/app/core/network/api_client.dart';
 
 class CommentController extends GetxController {
   final ApiClient _apiClient = Get.find();
@@ -27,6 +27,7 @@ class CommentController extends GetxController {
           'content': content,
           'page_number': pageNumber.toString(),
         },
+        body: {},
       );
 
       print('Comment API Response: $response');
