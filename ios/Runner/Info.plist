@@ -66,6 +66,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>يحتاج التطبيق للوصول إلى الكاميرا لعرض اتجاه القبلة عبر تقنية الواقع المعزز</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>مطلوب من قِبل مكتبة الكاميرا عند تشغيل ميزة القبلة بالواقع المعزز، ولا يقوم التطبيق بتسجيل أو حفظ أي صوت</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>يحتاج التطبيق لمعرفة موقعك الجغرافي لحساب اتجاه القبلة ومواقيت الصلاة بدقة</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
