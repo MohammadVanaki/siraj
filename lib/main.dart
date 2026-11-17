@@ -12,13 +12,16 @@ import 'package:mawsueat/app/core/common/constants/constants.dart';
 import 'package:mawsueat/app/core/init/init.dart';
 import 'package:mawsueat/app/core/routes/routes.dart';
 import 'package:mawsueat/app/features/setting/view/controller/settings_controller.dart';
+import 'package:mawsueat/firebase_options.dart';
 import 'package:mawsueat/notif/firebase_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     debugPrint('Firebase.initializeApp error: $e');
   }
@@ -124,7 +127,9 @@ Future<void> checkGooglePlayServices() async {
 
     try {
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp().timeout(const Duration(seconds: 5));
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        ).timeout(const Duration(seconds: 5));
       }
     } catch (e) {
       debugPrint('Firebase init failed or timed out: $e');
