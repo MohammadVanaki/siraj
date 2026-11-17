@@ -64,6 +64,8 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>يحتاج التطبيق للوصول إلى الكاميرا لعرض اتجاه القبلة عبر تقنية الواقع المعزز</string>
 	<key>NSMicrophoneUsageDescription</key>
