@@ -23,7 +23,11 @@ void main() async {
     debugPrint('Firebase.initializeApp error: $e');
   }
 
-  await init();
+  try {
+    await init();
+  } catch (e, stack) {
+    debugPrint('App init error: $e\n$stack');
+  }
 
   // Set system UI overlay style globally
   SystemChrome.setSystemUIOverlayStyle(

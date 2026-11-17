@@ -87,6 +87,7 @@ class PrayerCalculationService {
     required DateTime date,
     PrayerCalculationMethodType methodType = PrayerCalculationMethodType.tehran,
     Map<String, bool>? enabledMap,
+    Map<String, int>? prayerOffsets,
     String? timeZoneId,
     int? utcOffsetSeconds,
   }) {
@@ -138,11 +139,18 @@ class PrayerCalculationService {
     final isAlarmMaghrib = enabledMap?['maghrib'] ?? true;
     final isAlarmIsha = enabledMap?['isha'] ?? false;
 
+    final offsetFajr = prayerOffsets?['fajr'] ?? 0;
+    final offsetDhuhr = prayerOffsets?['dhuhr'] ?? 0;
+    final offsetAsr = prayerOffsets?['asr'] ?? 0;
+    final offsetMaghrib = prayerOffsets?['maghrib'] ?? 0;
+    final offsetIsha = prayerOffsets?['isha'] ?? 0;
+
     PrayerTimeItem buildItem({
       required PrayerType type,
       required DateTime instant,
       required bool isAdhan,
       required bool isAlarmEnabled,
+      int offsetMinutes = 0,
     }) {
       final localInstant = instant.toLocal();
       return PrayerTimeItem(
@@ -155,6 +163,7 @@ class PrayerCalculationService {
         ),
         isAdhan: isAdhan,
         isAlarmEnabled: isAlarmEnabled,
+        notificationOffsetMinutes: offsetMinutes,
       );
     }
 
@@ -164,48 +173,56 @@ class PrayerCalculationService {
         instant: prayerTimes.fajr,
         isAdhan: true,
         isAlarmEnabled: isAlarmFajr,
+        offsetMinutes: offsetFajr,
       ),
       buildItem(
         type: PrayerType.sunrise,
         instant: prayerTimes.sunrise,
         isAdhan: false,
         isAlarmEnabled: false,
+        offsetMinutes: 0,
       ),
       buildItem(
         type: PrayerType.dhuhr,
         instant: prayerTimes.dhuhr,
         isAdhan: true,
         isAlarmEnabled: isAlarmDhuhr,
+        offsetMinutes: offsetDhuhr,
       ),
       buildItem(
         type: PrayerType.asr,
         instant: prayerTimes.asr,
         isAdhan: true,
         isAlarmEnabled: isAlarmAsr,
+        offsetMinutes: offsetAsr,
       ),
       buildItem(
         type: PrayerType.sunset,
         instant: sunsetTime,
         isAdhan: false,
         isAlarmEnabled: false,
+        offsetMinutes: 0,
       ),
       buildItem(
         type: PrayerType.maghrib,
         instant: prayerTimes.maghrib,
         isAdhan: true,
         isAlarmEnabled: isAlarmMaghrib,
+        offsetMinutes: offsetMaghrib,
       ),
       buildItem(
         type: PrayerType.isha,
         instant: prayerTimes.isha,
         isAdhan: true,
         isAlarmEnabled: isAlarmIsha,
+        offsetMinutes: offsetIsha,
       ),
       buildItem(
         type: PrayerType.midnight,
         instant: midnightTime,
         isAdhan: false,
         isAlarmEnabled: false,
+        offsetMinutes: 0,
       ),
     ];
   }
@@ -217,6 +234,7 @@ class PrayerCalculationService {
     required double longitude,
     PrayerCalculationMethodType methodType = PrayerCalculationMethodType.tehran,
     Map<String, bool>? enabledMap,
+    Map<String, int>? prayerOffsets,
     String? timeZoneId,
     int? utcOffsetSeconds,
   }) {
@@ -236,6 +254,7 @@ class PrayerCalculationService {
       date: tomorrow,
       methodType: methodType,
       enabledMap: enabledMap,
+      prayerOffsets: prayerOffsets,
       timeZoneId: timeZoneId,
       utcOffsetSeconds: utcOffsetSeconds,
     );

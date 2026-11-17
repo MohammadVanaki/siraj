@@ -86,9 +86,9 @@ class PrayerNotificationService extends GetxService {
 
       const DarwinInitializationSettings darwinSettings =
           DarwinInitializationSettings(
-            requestAlertPermission: true,
-            requestBadgePermission: true,
-            requestSoundPermission: true,
+            requestAlertPermission: false,
+            requestBadgePermission: false,
+            requestSoundPermission: false,
           );
 
       const InitializationSettings initSettings = InitializationSettings(
@@ -132,10 +132,21 @@ class PrayerNotificationService extends GetxService {
           );
           await androidPlugin.createNotificationChannel(voiceChannel);
         }
+      }
+    } catch (e) {
+      debugPrint('Error initializing prayer notifications: $e');
+    }
+  }
 
-        // Request runtime notification permission (Android 13+)
+  /// طلب أذونات الإشعارات للمستخدم بعد إقلاع الواجهة بشكل آمن (لتجنب كراش iOS عند التشغيل)
+  Future<bool?> requestNotificationPermissions() async {
+    try {
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (androidPlugin != null) {
         await androidPlugin.requestNotificationsPermission();
-        // Request exact alarms permission if supported
         await androidPlugin.requestExactAlarmsPermission();
       }
 
@@ -144,15 +155,16 @@ class PrayerNotificationService extends GetxService {
             IOSFlutterLocalNotificationsPlugin
           >();
       if (iosPlugin != null) {
-        await iosPlugin.requestPermissions(
+        return await iosPlugin.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
         );
       }
     } catch (e) {
-      debugPrint('Error initializing prayer notifications: $e');
+      debugPrint('Error requesting notification permissions: $e');
     }
+    return null;
   }
 
   void _onNotificationTapped(NotificationResponse response) {
@@ -198,6 +210,7 @@ class PrayerNotificationService extends GetxService {
         longitude: lng,
         methodType: settings.methodType,
         enabledPrayers: settings.enabledPrayers,
+        prayerOffsets: settings.prayerOffsets,
         adhanVoiceId: settings.adhanVoiceId,
         timeZoneId: settings.timeZoneId,
         utcOffsetSeconds: settings.utcOffsetSeconds,
@@ -214,6 +227,7 @@ class PrayerNotificationService extends GetxService {
     required double longitude,
     required PrayerCalculationMethodType methodType,
     required Map<String, bool> enabledPrayers,
+    Map<String, int>? prayerOffsets,
     String? adhanVoiceId,
     String? timeZoneId,
     int? utcOffsetSeconds,
@@ -237,20 +251,41 @@ class PrayerNotificationService extends GetxService {
           date: targetDate,
           methodType: methodType,
           enabledMap: enabledPrayers,
+          prayerOffsets: prayerOffsets,
           timeZoneId: timeZoneId,
           utcOffsetSeconds: utcOffsetSeconds,
         );
 
         for (final prayer in items) {
           if (!prayer.isAlarmEnabled || !prayer.isAdhan) continue;
-          if (prayer.dateTime.isBefore(now)) continue;
+          final alertTime = prayer.effectiveAlertTime;
+          if (alertTime.isBefore(now)) continue;
 
-          final scheduledTz = tz.TZDateTime.from(prayer.dateTime, tz.local);
+          final scheduledTz = tz.TZDateTime.from(alertTime, tz.local);
+
+          String notificationTitle;
+          String notificationBody;
+          if (prayer.notificationOffsetMinutes < 0) {
+            final mins = prayer.notificationOffsetMinutes.abs();
+            notificationTitle =
+                'اقتراب موعد أذان ${prayer.arabicName} (قبل $mins د)';
+            notificationBody =
+                'متبقي $mins دقيقة على دخول وقت ${prayer.arabicName} (${voice.name})';
+          } else if (prayer.notificationOffsetMinutes > 0) {
+            final mins = prayer.notificationOffsetMinutes;
+            notificationTitle =
+                'تنبيه أذان ${prayer.arabicName} (+$mins د)';
+            notificationBody =
+                'مضى $mins دقيقة على دخول وقت ${prayer.arabicName} (${voice.name})';
+          } else {
+            notificationTitle = 'حان الآن موعد أذان ${prayer.arabicName}';
+            notificationBody = 'حي على الصلاة، حي على الفلاح (${voice.name})';
+          }
 
           await _notificationsPlugin.zonedSchedule(
             notificationId++,
-            'حان الآن موعد أذان ${prayer.arabicName}',
-            'حي على الصلاة، حي على الفلاح (${voice.name})',
+            notificationTitle,
+            notificationBody,
             scheduledTz,
             NotificationDetails(
               android: AndroidNotificationDetails(
@@ -311,10 +346,22 @@ class PrayerNotificationService extends GetxService {
       final rawSound = voice.rawResource;
       final targetChannelId = 'prayer_times_channel_$rawSound';
 
+      String title = 'حان الآن موعد أذان ${prayer.arabicName}';
+      String body = 'حي على الصلاة، حي على الفلاح (${voice.name})';
+      if (prayer.notificationOffsetMinutes < 0) {
+        final mins = prayer.notificationOffsetMinutes.abs();
+        title = 'اقتراب موعد أذان ${prayer.arabicName} (قبل $mins د)';
+        body = 'تذكير بالاستعداد لصلاة ${prayer.arabicName} (${voice.name})';
+      } else if (prayer.notificationOffsetMinutes > 0) {
+        final mins = prayer.notificationOffsetMinutes;
+        title = 'تنبيه أذان ${prayer.arabicName} (+$mins د)';
+        body = 'مضى $mins دقيقة على موعد أذان ${prayer.arabicName} (${voice.name})';
+      }
+
       await _notificationsPlugin.show(
         prayer.type.index,
-        'حان الآن موعد أذان ${prayer.arabicName}',
-        'حي على الصلاة، حي على الفلاح (${voice.name})',
+        title,
+        body,
         NotificationDetails(
           android: AndroidNotificationDetails(
             targetChannelId,

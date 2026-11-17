@@ -490,6 +490,7 @@ class PrayerTimesController extends GetxController {
       date: now,
       methodType: settings.value.methodType,
       enabledMap: settings.value.enabledPrayers,
+      prayerOffsets: settings.value.prayerOffsets,
       timeZoneId: settings.value.timeZoneId,
       utcOffsetSeconds: settings.value.utcOffsetSeconds,
     );
@@ -504,6 +505,7 @@ class PrayerTimesController extends GetxController {
         longitude: settings.value.longitude,
         methodType: settings.value.methodType,
         enabledPrayers: settings.value.enabledPrayers,
+        prayerOffsets: settings.value.prayerOffsets,
         adhanVoiceId: settings.value.adhanVoiceId,
         timeZoneId: settings.value.timeZoneId,
         utcOffsetSeconds: settings.value.utcOffsetSeconds,
@@ -520,6 +522,7 @@ class PrayerTimesController extends GetxController {
       longitude: settings.value.longitude,
       methodType: settings.value.methodType,
       enabledMap: settings.value.enabledPrayers,
+      prayerOffsets: settings.value.prayerOffsets,
       timeZoneId: settings.value.timeZoneId,
       utcOffsetSeconds: settings.value.utcOffsetSeconds,
     );
@@ -610,12 +613,62 @@ class PrayerTimesController extends GetxController {
         longitude: settings.value.longitude,
         methodType: settings.value.methodType,
         enabledPrayers: settings.value.enabledPrayers,
+        prayerOffsets: settings.value.prayerOffsets,
         adhanVoiceId: settings.value.adhanVoiceId,
         timeZoneId: settings.value.timeZoneId,
         utcOffsetSeconds: settings.value.utcOffsetSeconds,
         daysCount: 7,
       );
     }
+  }
+
+  /// Change notification / adhan offset (in minutes) for a specific prayer
+  Future<void> setPrayerOffset(PrayerType type, int offsetMinutes) async {
+    final key = type.name;
+    settings.value.prayerOffsets[key] = offsetMinutes;
+
+    // Update in today's prayer list
+    for (int i = 0; i < todayPrayers.length; i++) {
+      if (todayPrayers[i].type == type) {
+        todayPrayers[i] = todayPrayers[i].copyWith(
+          notificationOffsetMinutes: offsetMinutes,
+        );
+        break;
+      }
+    }
+
+    await _saveSettings();
+    todayPrayers.refresh();
+    calculateTodayPrayers();
+
+    String desc;
+    if (offsetMinutes == 0) {
+      desc = 'في موعد الأذان تماماً';
+    } else if (offsetMinutes < 0) {
+      desc = 'قبل الأذان بـ ${offsetMinutes.abs()} دقيقة';
+    } else {
+      desc = 'بعد الأذان بـ $offsetMinutes دقائق';
+    }
+
+    _showSnackbar(
+      title: 'تم ضبط وقت التنبيه',
+      message: 'تنبيه أذان ${type.arabicName}: $desc',
+      isSuccess: true,
+    );
+  }
+
+  /// Reset all prayer offsets to 0 (exact time)
+  Future<void> resetAllPrayerOffsets() async {
+    for (final key in settings.value.prayerOffsets.keys) {
+      settings.value.prayerOffsets[key] = 0;
+    }
+    await _saveSettings();
+    calculateTodayPrayers();
+    _showSnackbar(
+      title: 'إعادة ضبط التنبيهات',
+      message: 'تمت إعادة جميع مواعيد التنبيهات إلى موعد الأذان الفعلي',
+      isSuccess: true,
+    );
   }
 
   /// Change calculation method

@@ -70,6 +70,7 @@ class PrayerSettingsModel {
   String? timeZoneId;
   int? utcOffsetSeconds;
   Map<String, bool> enabledPrayers; // e.g. {'fajr': true, 'dhuhr': true, 'maghrib': true}
+  Map<String, int> prayerOffsets; // e.g. {'fajr': -5, 'dhuhr': 0, 'maghrib': 4} (in minutes)
   bool playFullAdhan;
   double volume;
   String adhanVoiceId;
@@ -84,17 +85,28 @@ class PrayerSettingsModel {
     this.timeZoneId,
     this.utcOffsetSeconds,
     Map<String, bool>? enabledPrayers,
+    Map<String, int>? prayerOffsets,
     this.playFullAdhan = true,
     this.volume = 1.0,
     this.adhanVoiceId = 'moazenzadeh',
-  }) : enabledPrayers = enabledPrayers ??
+  })  : enabledPrayers = enabledPrayers ??
             {
               'fajr': true,
               'dhuhr': true,
               'asr': false,
               'maghrib': true,
               'isha': false,
+            },
+        prayerOffsets = prayerOffsets ??
+            {
+              'fajr': 0,
+              'dhuhr': 0,
+              'asr': 0,
+              'maghrib': 0,
+              'isha': 0,
             };
+
+  int getOffsetFor(String prayerKey) => prayerOffsets[prayerKey] ?? 0;
 
   Map<String, dynamic> toJson() {
     return {
@@ -107,6 +119,7 @@ class PrayerSettingsModel {
       'timeZoneId': timeZoneId,
       'utcOffsetSeconds': utcOffsetSeconds,
       'enabledPrayers': enabledPrayers,
+      'prayerOffsets': prayerOffsets,
       'playFullAdhan': playFullAdhan,
       'volume': volume,
       'adhanVoiceId': adhanVoiceId,
@@ -150,6 +163,13 @@ class PrayerSettingsModel {
       utcOffsetSeconds: (json['utcOffsetSeconds'] as num?)?.toInt(),
       enabledPrayers: json['enabledPrayers'] != null
           ? Map<String, bool>.from(json['enabledPrayers'] as Map)
+          : null,
+      prayerOffsets: json['prayerOffsets'] != null
+          ? Map<String, int>.from(
+              (json['prayerOffsets'] as Map).map(
+                (k, v) => MapEntry(k.toString(), (v as num).toInt()),
+              ),
+            )
           : null,
       playFullAdhan: json['playFullAdhan'] as bool? ?? true,
       volume: (json['volume'] as num?)?.toDouble() ?? 1.0,

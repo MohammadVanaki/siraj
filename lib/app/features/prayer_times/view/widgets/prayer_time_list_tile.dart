@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:zoom_tap_animation/zoom_tap_animation.dart';
 import '../../controller/prayer_times_controller.dart';
 import '../../model/prayer_time_item.dart';
+import 'prayer_offset_sheet.dart';
 
 class PrayerTimeListTile extends StatelessWidget {
   final PrayerTimeItem item;
@@ -138,23 +139,92 @@ class PrayerTimeListTile extends StatelessWidget {
             ),
           ),
 
-          // Time display
-          Text(
-            item.formattedTime,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isPassed
-                  ? (isDark ? Colors.grey[500] : Colors.grey[500])
-                  : (isDark ? Colors.white : colorScheme.onSurface),
-              fontFamily: 'IBMPlexSansArabic',
-            ),
+          // Time display and optional Offset Pill
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                item.formattedTime,
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  color: isPassed
+                      ? (isDark ? Colors.grey[500] : Colors.grey[500])
+                      : (isDark ? Colors.white : colorScheme.onSurface),
+                  fontFamily: 'IBMPlexSansArabic',
+                ),
+              ),
+              if (item.isAdhan && item.notificationOffsetMinutes != 0) ...[
+                const Gap(3),
+                GestureDetector(
+                  onTap: () => PrayerOffsetSheet.show(context, item),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.notificationOffsetMinutes < 0
+                          ? Colors.amber.withAlpha(isDark ? 40 : 25)
+                          : Colors.teal.withAlpha(isDark ? 40 : 25),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: item.notificationOffsetMinutes < 0
+                            ? Colors.amber.withAlpha(isDark ? 90 : 120)
+                            : Colors.teal.withAlpha(isDark ? 90 : 120),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      item.offsetDescription,
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        color: item.notificationOffsetMinutes < 0
+                            ? (isDark ? Colors.amber[300] : Colors.amber[900])
+                            : (isDark ? Colors.teal[300] : Colors.teal[800]),
+                        fontFamily: 'IBMPlexSansArabic',
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
 
-          const Gap(12),
+          const Gap(10),
 
-          // Alarm / Bell Toggle (Only for Adhan prayers: Fajr, Dhuhr, Asr, Maghrib, Isha)
-          if (item.isAdhan)
+          // Action Buttons: Tune/Offset + Bell (Only for Adhan prayers)
+          if (item.isAdhan) ...[
+            ZoomTapAnimation(
+              onTap: () => PrayerOffsetSheet.show(context, item),
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: item.notificationOffsetMinutes != 0
+                      ? colorScheme.onPrimary.withAlpha(isDark ? 35 : 20)
+                      : (isDark
+                          ? Colors.white.withAlpha(10)
+                          : Colors.grey.withAlpha(20)),
+                  shape: BoxShape.circle,
+                  border: item.notificationOffsetMinutes != 0
+                      ? Border.all(
+                          color: colorScheme.onPrimary.withAlpha(100),
+                          width: 1,
+                        )
+                      : null,
+                ),
+                child: Icon(
+                  Icons.tune_rounded,
+                  size: 16,
+                  color: item.notificationOffsetMinutes != 0
+                      ? colorScheme.onPrimary
+                      : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                ),
+              ),
+            ),
+            const Gap(8),
             ZoomTapAnimation(
               onTap: () => controller.togglePrayerAlarm(item.type),
               child: AnimatedContainer(
@@ -180,7 +250,8 @@ class PrayerTimeListTile extends StatelessWidget {
                       : (isDark ? Colors.grey[600] : Colors.grey[400]),
                 ),
               ),
-            )
+            ),
+          ]
           else
             const SizedBox(width: 36),
         ],

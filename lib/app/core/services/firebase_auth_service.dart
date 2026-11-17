@@ -1,9 +1,19 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class FirebaseAuthService extends GetxService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth? get _auth {
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        return FirebaseAuth.instance;
+      }
+    } catch (e) {
+      debugPrint('FirebaseAuth.instance error: $e');
+    }
+    return null;
+  }
 
   final Rx<User?> currentUser = Rx<User?>(null);
 
@@ -15,8 +25,15 @@ class FirebaseAuthService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    currentUser.value = _auth.currentUser;
-    currentUser.bindStream(_auth.authStateChanges());
+    try {
+      final auth = _auth;
+      if (auth != null) {
+        currentUser.value = auth.currentUser;
+        currentUser.bindStream(auth.authStateChanges());
+      }
+    } catch (e) {
+      debugPrint('FirebaseAuthService onInit error: $e');
+    }
   }
 
   /// تسجيل حساب جديد بالبريد الإلكتروني وكلمة المرور
@@ -25,8 +42,12 @@ class FirebaseAuthService extends GetxService {
     required String password,
     String? displayName,
   }) async {
+    final auth = _auth;
+    if (auth == null) {
+      throw Exception('خدمة المصادقة غير مفعلة على هذا الجهاز');
+    }
     try {
-      final credential = await _auth.createUserWithEmailAndPassword(
+      final credential = await auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
@@ -34,7 +55,7 @@ class FirebaseAuthService extends GetxService {
       if (displayName != null && displayName.trim().isNotEmpty) {
         await credential.user?.updateDisplayName(displayName.trim());
         await credential.user?.reload();
-        currentUser.value = _auth.currentUser;
+        currentUser.value = auth.currentUser;
       }
 
       return credential;
@@ -49,8 +70,12 @@ class FirebaseAuthService extends GetxService {
     required String email,
     required String password,
   }) async {
+    final auth = _auth;
+    if (auth == null) {
+      throw Exception('خدمة المصادقة غير مفعلة على هذا الجهاز');
+    }
     try {
-      final credential = await _auth.signInWithEmailAndPassword(
+      final credential = await auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
@@ -63,8 +88,10 @@ class FirebaseAuthService extends GetxService {
 
   /// تسجيل الخروج
   Future<void> signOut() async {
+    final auth = _auth;
+    if (auth == null) return;
     try {
-      await _auth.signOut();
+      await auth.signOut();
     } catch (e) {
       debugPrint('FirebaseAuth sign-out error: $e');
       rethrow;
@@ -73,8 +100,10 @@ class FirebaseAuthService extends GetxService {
 
   /// إرسال بريد استعادة كلمة المرور
   Future<void> sendPasswordResetEmail(String email) async {
+    final auth = _auth;
+    if (auth == null) return;
     try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
+      await auth.sendPasswordResetEmail(email: email.trim());
     } on FirebaseAuthException catch (e) {
       debugPrint('FirebaseAuth reset password error: ${e.code} - ${e.message}');
       throw _handleAuthException(e);

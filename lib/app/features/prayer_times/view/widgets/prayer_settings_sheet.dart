@@ -7,6 +7,7 @@ import '../../model/adhan_voice_model.dart';
 import '../../model/prayer_city_model.dart';
 import '../../model/prayer_settings_model.dart';
 import '../../service/prayer_audio_service.dart';
+import 'prayer_offset_sheet.dart';
 
 class PrayerSettingsSheet extends StatelessWidget {
   const PrayerSettingsSheet({super.key});
@@ -426,6 +427,133 @@ class PrayerSettingsSheet extends StatelessWidget {
                   );
                 }),
 
+                const Divider(height: 28),
+
+                // Section 3: Notification Timing Offset (تقديم وتأخير التنبيه)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'توقيت التنبيهات والأذان',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onPrimary,
+                            fontFamily: 'IBMPlexSansArabic',
+                          ),
+                        ),
+                        const Gap(2),
+                        Text(
+                          'تخصيص وقت التنبيه لكل صلاة (قبل أو بعد الأذان)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                            fontFamily: 'IBMPlexSansArabic',
+                          ),
+                        ),
+                      ],
+                    ),
+                    Obx(() {
+                      final hasAnyOffset = controller.settings.value.prayerOffsets.values
+                          .any((v) => v != 0);
+                      if (!hasAnyOffset) return const SizedBox.shrink();
+                      return TextButton.icon(
+                        onPressed: () => controller.resetAllPrayerOffsets(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        icon: const Icon(Icons.refresh_rounded, size: 14, color: Colors.orange),
+                        label: const Text(
+                          'إعادة ضبط',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.orange,
+                            fontFamily: 'IBMPlexSansArabic',
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+                const Gap(12),
+                Obx(() {
+                  final adhanPrayers = controller.todayPrayers.where((p) => p.isAdhan).toList();
+                  if (adhanPrayers.isEmpty) return const SizedBox.shrink();
+
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: adhanPrayers.map((prayer) {
+                      final offset = prayer.notificationOffsetMinutes;
+                      final hasOffset = offset != 0;
+                      final badgeColor = hasOffset
+                          ? (offset < 0 ? const Color(0xFFE65100) : const Color(0xFF00796B))
+                          : Colors.grey.shade600;
+                      final badgeBg = hasOffset
+                          ? (offset < 0 ? const Color(0xFFFFF3E0) : const Color(0xFFE0F2F1))
+                          : (isDark ? Colors.grey.shade800 : Colors.grey.shade100);
+
+                      return ZoomTapAnimation(
+                        onTap: () => PrayerOffsetSheet.show(context, prayer),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF7F7F7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: hasOffset
+                                  ? badgeColor.withAlpha(120)
+                                  : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                prayer.arabicName,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurface,
+                                  fontFamily: 'IBMPlexSansArabic',
+                                ),
+                              ),
+                              const Gap(6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: badgeBg,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  prayer.offsetDescription,
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: badgeColor,
+                                    fontFamily: 'IBMPlexSansArabic',
+                                  ),
+                                ),
+                              ),
+                              const Gap(4),
+                              Icon(
+                                Icons.tune_rounded,
+                                size: 14,
+                                color: colorScheme.onSurface.withAlpha(140),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }),
+
                 const Gap(14),
 
                 // Full Adhan toggle
@@ -441,7 +569,7 @@ class PrayerSettingsSheet extends StatelessWidget {
                       ),
                     ),
                     value: isFullAdhan,
-                    activeColor: colorScheme.onPrimary,
+                    activeThumbColor: colorScheme.onPrimary,
                     onChanged: (val) {
                       controller.settings.value.playFullAdhan = val;
                       controller.settings.refresh();

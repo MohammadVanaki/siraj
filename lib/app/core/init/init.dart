@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -22,9 +23,17 @@ Future<void> init() async {
   // Initialize network client
   Get.put(ApiClient(), permanent: true);
 
-  // Initialize Firebase services
-  Get.put(FirebaseAuthService(), permanent: true);
-  Get.put(FirestoreService(), permanent: true);
+  // Initialize Firebase services safely
+  try {
+    if (Firebase.apps.isNotEmpty) {
+      Get.put(FirebaseAuthService(), permanent: true);
+      Get.put(FirestoreService(), permanent: true);
+    } else {
+      debugPrint('ℹ️ Firebase is not initialized. Running without Firebase auth/firestore services.');
+    }
+  } catch (e) {
+    debugPrint('Firebase services init error: $e');
+  }
 
   // Initialize controllers and services
   Get.put(AppVersionController());

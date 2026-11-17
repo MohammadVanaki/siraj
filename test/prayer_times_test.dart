@@ -71,5 +71,66 @@ void main() {
     // In real UTC instants, Najaf (44.33E) solar noon occurs later than Tehran (51.39E)
     expect(najafDhuhr.dateTime.isAfter(tehranDhuhr.dateTime), isTrue);
   });
+
+  test('Prayer offsets calculate effectiveAlertTime and offset descriptions correctly', () {
+    final najaf = PrayerCityModel.presetCities.firstWhere(
+      (c) => c.name == 'النجف الأشرف',
+    );
+    final date = DateTime(2026, 5, 15, 10, 0);
+    final offsets = {
+      'fajr': -5,
+      'maghrib': 4,
+      'isha': 0,
+    };
+
+    final prayers = PrayerCalculationService.calculatePrayerTimes(
+      latitude: najaf.latitude,
+      longitude: najaf.longitude,
+      date: date,
+      timeZoneId: najaf.timeZoneId,
+      utcOffsetSeconds: najaf.utcOffsetSeconds,
+      prayerOffsets: offsets,
+    );
+
+    final fajr = prayers.firstWhere((e) => e.type == PrayerType.fajr);
+    final maghrib = prayers.firstWhere((e) => e.type == PrayerType.maghrib);
+    final isha = prayers.firstWhere((e) => e.type == PrayerType.isha);
+
+    // Fajr: 5 min before
+    expect(fajr.notificationOffsetMinutes, equals(-5));
+    expect(fajr.effectiveAlertTime, equals(fajr.dateTime.subtract(const Duration(minutes: 5))));
+    expect(fajr.offsetDescription, equals('قبل الأذان بـ 5 د'));
+
+    // Maghrib: 4 min after
+    expect(maghrib.notificationOffsetMinutes, equals(4));
+    expect(maghrib.effectiveAlertTime, equals(maghrib.dateTime.add(const Duration(minutes: 4))));
+    expect(maghrib.offsetDescription, equals('بعد الأذان بـ 4 د'));
+
+    // Isha: on time
+    expect(isha.notificationOffsetMinutes, equals(0));
+    expect(isha.effectiveAlertTime, equals(isha.dateTime));
+    expect(isha.offsetDescription, equals('في الموعد'));
+  });
+
+  test('PrayerSettingsModel serializes and deserializes prayerOffsets accurately', () {
+    final model = PrayerSettingsModel(
+      cityName: 'كربلاء المقدسة',
+      latitude: 32.6160,
+      longitude: 44.0249,
+      prayerOffsets: {
+        'fajr': -10,
+        'dhuhr': -5,
+        'maghrib': 7,
+      },
+    );
+
+    final json = model.toJson();
+    final restored = PrayerSettingsModel.fromJson(json);
+
+    expect(restored.getOffsetFor('fajr'), equals(-10));
+    expect(restored.getOffsetFor('dhuhr'), equals(-5));
+    expect(restored.getOffsetFor('maghrib'), equals(7));
+    expect(restored.getOffsetFor('asr'), equals(0)); // default
+  });
 }
 
